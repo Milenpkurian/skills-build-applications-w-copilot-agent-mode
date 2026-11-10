@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { getJson } from '../api/client.js';
 
 type ApiRecord = Record<string, unknown>;
 type ViewState =
@@ -7,7 +6,13 @@ type ViewState =
   | { status: 'error'; message: string }
   | { status: 'empty' }
   | { status: 'success'; items: ApiRecord[] };
-type Props = { title: string; description: string; path: string; collection: string };
+type Props = {
+  title: string;
+  description: string;
+  load: () => Promise<unknown>;
+  collection: string;
+  emptyText: string;
+};
 
 function isApiRecord(value: unknown): value is ApiRecord {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -37,7 +42,7 @@ function formatValue(value: unknown): string | undefined {
   return undefined;
 }
 
-export function CapabilityCard({ title, description, path, collection }: Props) {
+export function CapabilityCard({ title, description, load, collection, emptyText }: Props) {
   const [state, setState] = useState<ViewState>({ status: 'loading' });
 
   useEffect(() => {
@@ -46,7 +51,7 @@ export function CapabilityCard({ title, description, path, collection }: Props) 
 
     async function loadItems() {
       try {
-        const items = readItems(await getJson<unknown>(path), collection);
+        const items = readItems(await load(), collection);
         if (active) setState(items.length ? { status: 'success', items } : { status: 'empty' });
       } catch (error) {
         if (active) {
@@ -62,7 +67,7 @@ export function CapabilityCard({ title, description, path, collection }: Props) 
     return () => {
       active = false;
     };
-  }, [collection, path]);
+  }, [collection, load]);
 
   return (
     <section className="card h-100">
@@ -71,7 +76,7 @@ export function CapabilityCard({ title, description, path, collection }: Props) 
         <p>{description}</p>
         {state.status === 'loading' && <p role="status">Loading {title.toLowerCase()}...</p>}
         {state.status === 'error' && <p role="alert">Unable to load {title.toLowerCase()}: {state.message}</p>}
-        {state.status === 'empty' && <p>No {title.toLowerCase()} available.</p>}
+        {state.status === 'empty' && <p>{emptyText}</p>}
         {state.status === 'success' && (
           <ul>
             {state.items.map((item, index) => {
