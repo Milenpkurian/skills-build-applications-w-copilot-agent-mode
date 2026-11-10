@@ -28,22 +28,22 @@ OctoFit Tracker is a three-tier application for a school fitness program. The st
 
 ## Implementation decisions
 
-Record your plan here before editing code.
+Implement the data and service contracts first, then connect the presentation tier to those stable API responses. Keep the existing ports, relative `/api` requests, and separation of presentation, logic, and data responsibilities.
 
-- Presentation tier decision:
-- Logic tier decision:
-- Data tier decision:
-- Activity tracking approach:
-- Team management approach:
-- Leaderboard approach:
-- Workout suggestions approach:
+- Presentation tier decision: Use the shared frontend API client for relative `/api` requests. Each capability view owns its loading, empty, success, and accessible error states, and renders the contract fields without embedding API or persistence logic.
+- Logic tier decision: Implement validation and capability behavior in the backend service layer, with Express routes translating expected validation and not-found failures into deliberate 4xx responses. Keep persistence details out of the React tier.
+- Data tier decision: Add required fields, types, defaults, and references to the existing Mongoose models. Preserve unrelated records when seeding, link seeded users and teams consistently, and make repeated seeding idempotent.
+- Activity tracking approach: Validate request fields and well-formed existing user/team IDs before writing. Store the supplied user, team, type, and minutes with computed points and an occurrence date; reject invalid input without allowing Mongoose cast errors to become 500 responses.
+- Team management approach: Require a non-empty name, preserve the submitted name and mascot, and default members to an empty array. Create and list teams through the service layer with member IDs exposed in API responses.
+- Leaderboard approach: Aggregate activity points by team, sort totals descending, and return each team name, total points, and a 1-based rank.
+- Workout suggestions approach: Find the user by email, use their fitness goal and recent activity to choose relevant workouts, and return a reason for the recommendation. Return a deliberate 4xx response if no user matches.
 
 ## Test plan
 
-Record the commands you run and what each failure means.
+Run focused contract tests while implementing each tier, then run both builds. Results below are the current baseline before implementation; the contract-test failures are expected for the incomplete starter.
 
-- Data-tier command: `npm run test:data --prefix octofit-tracker/backend`
-- API command: `npm run test:api --prefix octofit-tracker/backend`
-- Frontend command: `npm test --prefix octofit-tracker/frontend`
-- Backend build command: `npm run build --prefix octofit-tracker/backend`
-- Frontend build command: `npm run build --prefix octofit-tracker/frontend`
+- Data tier — `npm run test:data --prefix octofit-tracker/backend`: **4 failed, 1 passed.** The User, Team, Activity, and Workout model validation contracts are incomplete; the seed/idempotence contract passes.
+- API — `npm run test:api --prefix octofit-tracker/backend`: **4 failed.** Invalid activities and nameless teams return 501 instead of 400, the leaderboard is empty, and workout suggestions do not match user goals or activity patterns.
+- Presentation — `npm test --prefix octofit-tracker/frontend`: **15 failed.** Expected API data is not rendered, workouts do not request the expected user, and the capability views lack required loading, empty, and accessible error states.
+- Backend build — `npm run build --prefix octofit-tracker/backend`: **passed** (`tsc --noEmit`).
+- Frontend build — `npm run build --prefix octofit-tracker/frontend`: **passed** (`tsc --noEmit` and `vite build`).
