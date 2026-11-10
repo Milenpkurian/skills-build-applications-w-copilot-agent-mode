@@ -40,10 +40,11 @@ Implement the data and service contracts first, then connect the presentation ti
 
 ## Test plan
 
-Run focused contract tests while implementing each tier, then run both builds. The data-tier result reflects the schema implementation; the remaining results are the starter baseline.
+Run the contract tests and production builds for all tiers before merging. The final verification results are:
 
-- Data tier — `npm run test:data --prefix octofit-tracker/backend`: **5 passed.** Required model fields are validated. Seed upserts run validators and retain stable fixture keys, unrelated records, and consistent team membership across repeated runs.
-- API — `npm run test:api --prefix octofit-tracker/backend`: **4 failed.** Invalid activities and nameless teams return 501 instead of 400, the leaderboard is empty, and workout suggestions do not match user goals or activity patterns.
-- Presentation — `npm test --prefix octofit-tracker/frontend`: **15 failed.** Expected API data is not rendered, workouts do not request the expected user, and the capability views lack required loading, empty, and accessible error states.
+- Data tier — `npm run test:data --prefix octofit-tracker/backend`: **5 passed.**
+- API — `npm run test:api --prefix octofit-tracker/backend`: **4 passed.**
+- Presentation — `npm test --prefix octofit-tracker/frontend`: **15 passed.**
 - Backend build — `npm run build --prefix octofit-tracker/backend`: **passed** (`tsc --noEmit`).
 - Frontend build — `npm run build --prefix octofit-tracker/frontend`: **passed** (`tsc --noEmit` and `vite build`).
+- Integration — seeded MongoDB data was returned successfully by all four API endpoints and displayed in each frontend journey. The frontend's accessible error state was also verified with a simulated `503` response.
