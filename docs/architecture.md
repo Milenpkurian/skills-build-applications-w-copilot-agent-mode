@@ -40,9 +40,9 @@ Implement the data and service contracts first, then connect the presentation ti
 
 ## Test plan
 
-Run focused contract tests while implementing each tier, then run both builds. Results below are the current baseline before implementation; the contract-test failures are expected for the incomplete starter.
+Run focused contract tests while implementing each tier, then run both builds. The data-tier result reflects the schema implementation; the remaining results are the starter baseline.
 
-- Data tier — `npm run test:data --prefix octofit-tracker/backend`: **4 failed, 1 passed.** The User, Team, Activity, and Workout model validation contracts are incomplete; the seed/idempotence contract passes.
+- Data tier — `npm run test:data --prefix octofit-tracker/backend`: **5 passed.** Required model fields are validated. Seed upserts run validators and retain stable fixture keys, unrelated records, and consistent team membership across repeated runs.
 - API — `npm run test:api --prefix octofit-tracker/backend`: **4 failed.** Invalid activities and nameless teams return 501 instead of 400, the leaderboard is empty, and workout suggestions do not match user goals or activity patterns.
 - Presentation — `npm test --prefix octofit-tracker/frontend`: **15 failed.** Expected API data is not rendered, workouts do not request the expected user, and the capability views lack required loading, empty, and accessible error states.
 - Backend build — `npm run build --prefix octofit-tracker/backend`: **passed** (`tsc --noEmit`).
